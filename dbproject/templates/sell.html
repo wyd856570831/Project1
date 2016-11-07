@@ -1,0 +1,33 @@
+{% extends "header.html" %}
+
+{% block body %}
+
+<h3>Input infomation of the item you want to sell:</h3>
+
+<form method='POST' action="/mysell/">    
+    name: <input type="text" name="name">
+    <br>
+    <br>
+	bed: <input type="radio" name="type" value="bed" />
+	desk: <input type="radio" name="type" value="desk" />
+    book: <input type="radio" name="type" value="book" />
+    clothes: <input type="radio" name="type" value="clothes" />
+	others: <input type="radio" name="type" value="others" />
+    <br>
+    <br>
+    price: <input type="text" name="price">
+    <br>
+    <br>
+    description: 
+    <br>
+    <textarea name='description' id='description'></textarea>
+    <br>
+    <input type='submit' value='Submit' />
+    
+</form>
+
+
+
+
+{% endblock %}
+

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Register </title>
+</head>
+<body>
+	<div class="container">
+		  <h4>Register</h4>
+		  
+		  {% with messages = get_flashed_messages() %}
+		   {% if messages %}
+		     <ul class="flashes">
+		        {% for message in messages %}
+		         <div class="message_flash">{{ message }}</div>
+		        {% endfor %}
+		    </ul>
+		  {% endif %}
+		 {% endwith %}
+
+		 
+		  {% from "_formhelpers.html" import render_field %}
+			<form method=post action="/register/">
+			  <dl>
+				{{ render_field(form.email) }}
+				{{ render_field(form.password) }}				
+				{{ render_field(form.confirm) }}
+				{{ render_field(form.name) }}
+				buyer: <input type="radio" name="character" value="buyer" />
+				seller: <input type="radio" name="character" value="seller" />
+				{{ render_field(form.accept_tos) }}
+			  </dl>
+			  
+			  <p><input type=submit value=Register>
+			</form>
+
+		  {% if error %}
+			<p class="error"><strong>Error:</strong> {{ error }}</p>
+		  {% endif %}
+
+</body>
+</html>
