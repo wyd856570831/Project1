@@ -48,11 +48,6 @@ def register():
             name = form.name.data
             password = sha256_crypt.encrypt((str(form.password.data)))
             conn, cur = connect()
-            #print "email: "+email
-            #print "name: "+name
-            #print "password: "+password
-
-            #cur.execute("select * from users where email = '{}'".format(email))
             q = "select * from users where email = %s"
             cur.execute(q,(email,))
             x = cur.fetchone();
@@ -60,8 +55,6 @@ def register():
             print x
 
             if x is not None:
-                #print x
-                #print "*** x IS NOT NONE ***"
                 flash("That email is already taken, please choose another.")
                 #print "That email is already taken, please choose another."
                 return render_template("register.html", form=form)
@@ -94,12 +87,24 @@ def register():
                 cur.close()
                 conn.close()
                 gc.collect()
-                session['logged_in'] = True
-                session['email'] = email
+                #session['logged_in'] = True
+                #session['email'] = email
                 return redirect(url_for('homepage'))    
 
         gc.collect()
         return render_template('register.html', form=form)
+
+    except Exception as e :
+        return 'THIS IS EN EXCEPTION: ' + str(e)
+
+@app.route('/index/<string:type_chosen>/', methods=["GET","POST"])
+def index2(type_chosen):
+    try:
+        print type_chosen
+        conn, cur = connect() 
+        cur.execute("SELECT name, theclass, price, iid, quantity from items where theclass = '{}'".format(type_chosen))
+        item_data = cur.fetchall()
+        return render_template('index.html', item_data=item_data)
 
     except Exception as e :
         return 'THIS IS EN EXCEPTION: ' + str(e)
@@ -111,6 +116,9 @@ def index():
         cur.execute("SELECT name, theclass, price, iid, quantity from items")
         item_data = cur.fetchall()
         return render_template('index.html', item_data=item_data)
+
+            
+
     except Exception as e :
         return 'THIS IS EN EXCEPTION: ' + str(e)
 
