@@ -1,22 +1,49 @@
 {% extends "header.html" %}
 
 
+<!-- item_data: iid, name, sellerid, class, description, price, quantity, sellingstatus, cancelstatus -->
+
 {% block body %}
 	<h3>name: {{item_data[1]}}</h3>
 	<h3>seller: {{seller_name[0]}}</h3>
+	<form method='POST' action="/new_message/">  
+    	<input type = 'hidden' name = 'receiver_id' value = {{item_data[2]}} />
+    	<input type='submit' value='Send the seller a message' />
+	</form>
 	<h3>class: {{item_data[3]}}</h3>
 	<h3>price: ${{item_data[5]}}</h3>
+	<h3>quantity: {{item_data[6]}}</h3>
 	<h3>description:</h3>
 	<p>{{item_data[4]}}</p>
 
 
 	<!--<a href="/item/"><button>Add into likelist</button></a>-->
 	
+<!-- begin Likelistbox -->
+{% if likeit %}
+<p> This item is added into your Likelist.</p> <br>
+{% else %}
+<form method='POST' action="/add_likelist/">
+    Do you like it？   
+    <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
+    <input type='submit' value='Add into Likelist' />
+</form>
+{% endif %}
+
+<!-- end Likelistbox -->
+
 <!-- begin commentbox -->
 {% for comment in comments %}
-user:{{comment[0]}} 
 <br>
-comment: {{comment[1]}}
+<br>
+<br>
+user:{{comment[0]}} 
+<form method='POST' action="/new_message/">
+    <input type = 'hidden' name = 'receiver_id' value = {{comment[3]}} />
+    <input type='submit' value='Send a message' />
+</form>
+time: {{comment[1]}} <br>
+comment: {{comment[2]}}
 <br>
 <br>
 {% endfor %}

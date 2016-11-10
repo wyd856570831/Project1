@@ -1,0 +1,47 @@
+{% extends "header.html" %}
+
+
+{% block body %}
+	<h3>My Messages</h3>
+
+<h3>Received Messages</h3>
+
+<table class="table table-striped">
+	<tr>
+        <th>From</th>
+        <th>Title</th>
+        <th>Content</th>
+        <th>Time</th>
+    </tr>
+    {% for message in received_messages %}
+    <tr>
+        <th>{{message[0]}}</th>
+        <th>{{message[1]}}</th>
+        <th>{{message[2]}}</th>
+        <th>{{message[3]}}</th>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3>Sent Messages</h3>
+
+<table class="table table-striped">
+	<tr>
+        <th>To</th>
+        <th>Title</th>
+        <th>Content</th>
+        <th>Time</th>
+    </tr>
+    {% for message in sent_messages %}
+    <tr>
+        <th>{{message[0]}}</th>
+        <th>{{message[1]}}</th>
+        <th>{{message[2]}}</th>
+        <th>{{message[3]}}</th>
+    </tr>
+    {% endfor %}
+</table>
+
+
+{% endblock %}
+

@@ -1,0 +1,24 @@
+{% extends "header.html" %}
+
+
+{% block body %}
+	<h3>New Message</h3>
+
+
+
+<form method='POST' action="/compose_message/">
+	From: {{sender_name[0]}} <br>
+	To: {{receiver_name[0]}} <br>
+    Title <input type='text' name = 'title' /> <br>
+    Content <textarea name='content' id='contentid'></textarea>
+    <br>
+<!--     receiver_id = {{receiver_id}} -->
+    <input type = 'hidden' name = 'receiver_id' value = {{receiver_id}} />
+    <input type='submit' value='send' />
+</form>
+<!-- end commentbox -->
+
+
+
+{% endblock %}
+
