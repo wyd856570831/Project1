@@ -1,40 +1,31 @@
-{% extends "header.html" %}
-
-
-<!-- Prepared to Display: name, email, phone, credit card -->
-
-<!-- user_data: uid, name, password, email, phone -->
-<!-- card_data: uid, cardnumber, ownername -->
-
-{% block body %}
-<h1> Profile </h1>
-<h3> Name: {{user_data[1]}} </h3> 
-<h3> Email: {{user_data[3]}} </h3> 
-<h3> Phone: 
-{% if user_data[4] %}
-{{user_data[4]}}
-<form method='GET' action="/add_phone/">
-    <input type='submit' value='Change Number' />
-</form>
-
-{% else %}
-<form method='GET' action="/add_phone/">
-    <input type='submit' value='ADD' />
-</form>
-{% endif %}
-</h3>
-<h3> Credit Card: 
-{% if card_data %}
-****{{card_data[1][12:]}}
-<form method='GET' action="/add_card/">
-    <input type='submit' value='Change Card' />
-</form>
-{% else %}
-<form method='GET' action="/add_card/">
-    <input type='submit' value='ADD Card' />
-</form>
-{% endif %}
-
-
-{% endblock %}
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1404.47">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 18.0px}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">{% extends "header.html" %} {% block body %}</span></p>
+<h1 style="margin: 0.0px 0.0px 16.1px 0.0px; line-height: 28.0px; font: 24.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Profile<span class="Apple-converted-space"> </span></b></span></h1>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Name: {{user_data[1]}}<span class="Apple-converted-space"> </span></b></span></h3>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Email: {{user_data[3]}}<span class="Apple-converted-space"> </span></b></span></h3>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Phone: {% if user_data[4] %} {{user_data[4]}}</b></span></h3>
+<p class="p4"><span class="s1"><b></b></span><br></p>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>{% else %}</b></span></h3>
+<p class="p4"><span class="s1"><b></b></span><br></p>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>{% endif %}<span class="Apple-converted-space"> </span></b></span></h3>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>Credit Card: {% if card_data %} ****{{card_data[1][12:]}}</b></span></h3>
+<p class="p4"><span class="s1"><b></b></span><br></p>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>{% else %}</b></span></h3>
+<p class="p4"><span class="s1"><b></b></span><br></p>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; line-height: 17.0px; font: 14.0px Times; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>{% endif %}<span class="Apple-converted-space">  </span>{% endblock %}<span class="Apple-converted-space"> </span></b></span></h3>
+</body>
+</html>

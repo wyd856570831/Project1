@@ -1,0 +1,19 @@
+{% extends "header.html" %}
+
+
+{% block body %}
+	<h3>Set Your Credit Card</h3>
+
+
+
+<form method='POST' action="/add_card/">
+	Card Holder: <input type='text' name = 'holder' /> <br>
+    Card Number: <input type='text' name = 'card' /> <br>
+    <input type='submit' value='Set' />
+</form>
+
+
+
+
+{% endblock %}
+

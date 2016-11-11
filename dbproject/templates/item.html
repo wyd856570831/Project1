@@ -33,6 +33,18 @@
 {% endif %}
 
 <!-- end Likelistbox -->
+{% if not item_data[7] %}
+<p> This item has been sold.</p> <br>
+{% else %}
+<form method='POST' action="/purchase/"> 
+    <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
+    <input type = 'hidden' name = 'seller_id' value = {{item_data[2]}} />
+    <input type = 'hidden' name = 'price' value = {{item_data[5]}} />
+    <input type='submit' value='Buy it' />
+</form>
+{% endif %}
+
+
 
 <!-- begin commentbox -->
 {% for comment in comments %}
