@@ -48,11 +48,6 @@ def register():
             name = form.name.data
             password = sha256_crypt.encrypt((str(form.password.data)))
             conn, cur = connect()
-            #print "email: "+email
-            #print "name: "+name
-            #print "password: "+password
-
-            #cur.execute("select * from users where email = '{}'".format(email))
             q = "select * from users where email = %s"
             cur.execute(q,(email,))
             x = cur.fetchone();
@@ -60,8 +55,6 @@ def register():
             print x
 
             if x is not None:
-                #print x
-                #print "*** x IS NOT NONE ***"
                 flash("That email is already taken, please choose another.")
                 #print "That email is already taken, please choose another."
                 return render_template("register.html", form=form)
@@ -94,12 +87,24 @@ def register():
                 cur.close()
                 conn.close()
                 gc.collect()
-                session['logged_in'] = True
-                session['email'] = email
+                #session['logged_in'] = True
+                #session['email'] = email
                 return redirect(url_for('homepage'))    
 
         gc.collect()
         return render_template('register.html', form=form)
+
+    except Exception as e :
+        return 'THIS IS EN EXCEPTION: ' + str(e)
+
+@app.route('/index/<string:type_chosen>/', methods=["GET","POST"])
+def index2(type_chosen):
+    try:
+        print type_chosen
+        conn, cur = connect() 
+        cur.execute("SELECT name, theclass, price, iid, quantity from items where theclass = '{}'".format(type_chosen))
+        item_data = cur.fetchall()
+        return render_template('index.html', item_data=item_data)
 
     except Exception as e :
         return 'THIS IS EN EXCEPTION: ' + str(e)
@@ -111,6 +116,9 @@ def index():
         cur.execute("SELECT name, theclass, price, iid, quantity from items")
         item_data = cur.fetchall()
         return render_template('index.html', item_data=item_data)
+
+            
+
     except Exception as e :
         return 'THIS IS EN EXCEPTION: ' + str(e)
 
@@ -305,13 +313,14 @@ def compose_message():
 def my_messages():
     try:
         conn, cur = connect()
-
         q = """SELECT u.name, m.title, m.content, m.time 
                 FROM users AS u, messages AS m 
                 WHERE u.uid = m.uid1 AND m.uid2 = %s
                 ORDER BY m.time DESC"""
+        print q
         cur.execute(q,(session['uid'],))
         received_messages = cur.fetchall()
+        print received_messages
 
         q = """SELECT u.name, m.title, m.content, m.time 
                 FROM users AS u, messages AS m 
@@ -319,7 +328,7 @@ def my_messages():
                 ORDER BY m.time DESC"""
         cur.execute(q,(session['uid'],))
         sent_messages = cur.fetchall()
-
+        print sent_messages
         conn.commit()
         cur.close()
         conn.close()
@@ -395,22 +404,41 @@ def mysell():
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
-@app.route('/userfile/')
+@app.route('/userfile/', methods = ["GET", "POST"])
 def userfile():
     try:
-        conn, cur = connect()
+        conn, cur = connect()        
         q = "SELECT * FROM users WHERE uid = %s"
         cur.execute(q,(session['uid'],))
         user_data = cur.fetchone()
+
         q = "SELECT * FROM creditcards WHERE uid = %s"
         cur.execute(q,(session['uid'],))
         card_data = cur.fetchone()
-        
-        print "test card_data"
+
         return render_template('userfile.html', user_data = user_data, card_data = card_data)
 
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
+
+@app.route('/add_phone/', methods = ["GET","POST"])
+def add_phone():
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            phone_number = request.form['phone']
+            q = "UPDATE users SET phone = %s WHERE uid = %s"
+            cur.execute(q,(phone_number, session['uid']))
+            conn.commit()
+            cur.close()
+            conn.close()
+            gc.collect()
+            location = '/userfile/'
+            return redirect(location)
+        else: # method = "GET"
+            return render_template('add_phone.html')
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e)    
 
 
 @app.route('/add_phone/', methods = ["GET","POST"])
@@ -433,6 +461,7 @@ def add_phone():
         return 'THIS IS EN EXCEPTION: ' + str(e)    
 
 
+
 @app.route('/add_card/', methods = ["GET","POST"])
 def add_card():
     try:
@@ -452,7 +481,6 @@ def add_card():
             return render_template('add_card.html')
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e)    
-
 
 
 

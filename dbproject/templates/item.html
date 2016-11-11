@@ -3,7 +3,9 @@
 
 <!-- item_data: iid, name, sellerid, class, description, price, quantity, sellingstatus, cancelstatus -->
 
+
 {% block body %}
+
 	<h3>name: {{item_data[1]}}</h3>
 	<h3>seller: {{seller_name[0]}}</h3>
 	<form method='POST' action="/new_message/">  
