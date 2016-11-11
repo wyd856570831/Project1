@@ -240,7 +240,7 @@ def compose_message():
         conn, cur = connect()
         if request.method == "POST":
             receiver_id = request.form['receiver_id']
-            print "receiver_id = ", receiver_id
+            # print "receiver_id = ", receiver_id
             sender_id = session['uid']
             cur.execute("SET timezone = 'EST' ")  # set to New York time.
             cur.execute("SELECT localtimestamp(0)")
@@ -260,13 +260,14 @@ def compose_message():
 def my_messages():
     try:
         conn, cur = connect()
-
         q = """SELECT u.name, m.title, m.content, m.time 
                 FROM users AS u, messages AS m 
                 WHERE u.uid = m.uid1 AND m.uid2 = %s
                 ORDER BY m.time DESC"""
+        print q
         cur.execute(q,(session['uid'],))
         received_messages = cur.fetchall()
+        print received_messages
 
         q = """SELECT u.name, m.title, m.content, m.time 
                 FROM users AS u, messages AS m 
@@ -274,7 +275,7 @@ def my_messages():
                 ORDER BY m.time DESC"""
         cur.execute(q,(session['uid'],))
         sent_messages = cur.fetchall()
-
+        print sent_messages
         conn.commit()
         cur.close()
         conn.close()
@@ -350,27 +351,61 @@ def mysell():
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
-@app.route('/userfile/')
+@app.route('/userfile/', methods = ["GET", "POST"])
 def userfile():
     try:
-        conn, cur = connect()
+        conn, cur = connect()        
         q = "SELECT * FROM users WHERE uid = %s"
-        print q
         cur.execute(q,(session['uid'],))
         user_data = cur.fetchone()
-        print "user_data"
+
         q = "SELECT * FROM creditcards WHERE uid = %s"
         cur.execute(q,(session['uid'],))
         card_data = cur.fetchone()
-        
-        print "test card_data"
+
         return render_template('userfile.html', user_data = user_data, card_data = card_data)
 
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
+@app.route('/add_phone/', methods = ["GET","POST"])
+def add_phone():
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            phone_number = request.form['phone']
+            q = "UPDATE users SET phone = %s WHERE uid = %s"
+            cur.execute(q,(phone_number, session['uid']))
+            conn.commit()
+            cur.close()
+            conn.close()
+            gc.collect()
+            location = '/userfile/'
+            return redirect(location)
+        else: # method = "GET"
+            return render_template('add_phone.html')
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e)    
 
-
+@app.route('/add_card/', methods = ["GET","POST"])
+def add_card():
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            card_number = request.form['card']
+            card_holder = request.form['holder']
+            q = "INSERT INTO creditcards (uid, cardnumber, ownername) VALUES (%s, %s, %s)"
+            cur.execute(q,(session['uid'], card_number, card_holder))
+            conn.commit()
+            cur.close()
+            conn.close()
+            gc.collect()
+            location = '/userfile/'
+            return redirect(location)
+        else: # method = "GET"
+            return render_template('add_card.html')
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e)    
 
 
 
