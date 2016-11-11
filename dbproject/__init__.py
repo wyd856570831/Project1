@@ -204,6 +204,59 @@ def item(iid):
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
+@app.route('/purchase/', methods = ["GET","POST"])
+def purchase():
+    # tid | sellerid | buyerid | iid |        time         | totalprice 
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            seller_id = request.form['seller_id']
+            buyer_id = session['uid']
+            item_id = request.form['item_id']
+            price = request.form['price']
+            cur.execute("SET timezone = 'EST' ")  # set to New York time.
+            cur.execute("SELECT localtimestamp(0)")
+            localtime = cur.fetchone()
+
+            q = "SELECT sellingstatus FROM items WHERE iid = %s"
+            cur.execute(q, (item_id,))
+            isselling = cur.fetchone()
+            if isselling[0]:
+                q = """INSERT INTO transactions (sellerid, buyerid, iid, time, totalprice) 
+                    VALUES (%s, %s, %s, %s, %s)"""
+                cur.execute(q,(seller_id, buyer_id, item_id, localtime, price))
+                q = "UPDATE items SET sellingstatus = FALSE WHERE iid = %s"
+                cur.execute(q, (item_id,))
+                conn.commit()
+
+        cur.close()
+        conn.close()
+        gc.collect()
+        return redirect('/buy_history/')
+
+
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e) 
+
+@app.route('/buy_history/', methods = ["GET","POST"])
+def buy_history():
+    try:
+        conn, cur = connect()
+
+        q = """SELECT i.iid, name, theclass, price, time FROM items AS i, transactions AS t
+                  WHERE t.buyerid = %s AND t.iid = i.iid"""
+        cur.execute(q,(session['uid'],))
+        item_data = cur.fetchall()
+
+        cur.close()
+        conn.close()
+        gc.collect()
+        return render_template('buy_history.html', item_data = item_data)
+
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e) 
+
+
 @app.route('/new_message/', methods = ["GET","POST"])
 def new_message():
     try:
@@ -232,7 +285,7 @@ def compose_message():
         conn, cur = connect()
         if request.method == "POST":
             receiver_id = request.form['receiver_id']
-            print "receiver_id = ", receiver_id
+            # print "receiver_id = ", receiver_id
             sender_id = session['uid']
             cur.execute("SET timezone = 'EST' ")  # set to New York time.
             cur.execute("SELECT localtimestamp(0)")
@@ -347,10 +400,8 @@ def userfile():
     try:
         conn, cur = connect()
         q = "SELECT * FROM users WHERE uid = %s"
-        print q
         cur.execute(q,(session['uid'],))
         user_data = cur.fetchone()
-        print "user_data"
         q = "SELECT * FROM creditcards WHERE uid = %s"
         cur.execute(q,(session['uid'],))
         card_data = cur.fetchone()
@@ -361,6 +412,46 @@ def userfile():
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
+
+@app.route('/add_phone/', methods = ["GET","POST"])
+def add_phone():
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            phone_number = request.form['phone']
+            q = "UPDATE users SET phone = %s WHERE uid = %s"
+            cur.execute(q,(phone_number, session['uid']))
+            conn.commit()
+            cur.close()
+            conn.close()
+            gc.collect()
+            location = '/userfile/'
+            return redirect(location)
+        else: # method = "GET"
+            return render_template('add_phone.html')
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e)    
+
+
+@app.route('/add_card/', methods = ["GET","POST"])
+def add_card():
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            card_number = request.form['card']
+            card_holder = request.form['holder']
+            q = "INSERT INTO creditcards (uid, cardnumber, ownername) VALUES (%s, %s, %s)"
+            cur.execute(q,(session['uid'], card_number, card_holder))
+            conn.commit()
+            cur.close()
+            conn.close()
+            gc.collect()
+            location = '/userfile/'
+            return redirect(location)
+        else: # method = "GET"
+            return render_template('add_card.html')
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e)    
 
 
 

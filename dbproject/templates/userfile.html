@@ -1,3 +1,4 @@
+
 {% extends "header.html" %}
 
 
@@ -13,8 +14,27 @@
 <h3> Phone: 
 {% if user_data[4] %}
 {{user_data[4]}}
+<form method='GET' action="/add_phone/">
+    <input type='submit' value='Change Number' />
+</form>
+
+{% else %}
+<form method='GET' action="/add_phone/">
+    <input type='submit' value='ADD' />
+</form>
 {% endif %}
 </h3>
+<h3> Credit Card: 
+{% if card_data %}
+****{{card_data[1][12:]}}
+<form method='GET' action="/add_card/">
+    <input type='submit' value='Change Card' />
+</form>
+{% else %}
+<form method='GET' action="/add_card/">
+    <input type='submit' value='ADD Card' />
+</form>
+{% endif %}
+
 
 {% endblock %}
-
