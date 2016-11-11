@@ -202,13 +202,18 @@ def item(iid):
         q = "SELECT name from users where uid = %s"
         cur.execute(q,(item_data[2],))
         seller_name = cur.fetchone()
+
+        q = "SELECT * FROM users u, buyers b WHERE u.uid = b.uid AND u.uid = %s"
+        cur.execute(q,(session['uid'],))
+        isbuyer = not (cur.fetchone() is None)
         #cur.execute("SELECT u.name, c.content FROM comments AS c, users AS u WHERE u.uid = c.uid AND c.iid = {}".format(iid))
         q = """SELECT u.name, c.time, c.content, c.uid 
                 FROM comments AS c, users AS u WHERE u.uid = c.uid AND c.iid = %s"""
         cur.execute(q,(iid,))
         comments = cur.fetchall()
         #print comments[5][1]
-        return render_template('item.html', item_data=item_data, seller_name=seller_name, comments=comments, likeit = likeIt)
+        return render_template('item.html', item_data=item_data, \
+            seller_name=seller_name, comments=comments, likeit = likeIt, isbuyer = isbuyer)
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
@@ -396,7 +401,7 @@ def mysell():
             conn.commit()
 
         #cur.execute("SELECT name, theclass, price FROM items WHERE sellerid = {}".format(session['uid']))
-        q = "SELECT name, theclass, price FROM items WHERE sellerid = %s"
+        q = "SELECT name, theclass, price, iid FROM items WHERE sellerid = %s"
         cur.execute(q,(session['uid'],))
         selling_items = cur.fetchall()
         return render_template('mysell.html', selling_items=selling_items)
@@ -414,10 +419,14 @@ def userfile():
 
         q = "SELECT * FROM creditcards WHERE uid = %s"
         cur.execute(q,(session['uid'],))
-        card_data = cur.fetchone()
+        card_data = cur.fetchall()
 
+        cur.close()
+        conn.close()
+        gc.collect()
+        # print "userfile", card_data, user_data
         return render_template('userfile.html', user_data = user_data, card_data = card_data)
-
+        # return render_template('userfile.html')
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
@@ -441,24 +450,6 @@ def add_phone():
         return 'THIS IS EN EXCEPTION: ' + str(e)    
 
 
-@app.route('/add_phone/', methods = ["GET","POST"])
-def add_phone():
-    try:
-        conn, cur = connect()
-        if request.method == "POST":
-            phone_number = request.form['phone']
-            q = "UPDATE users SET phone = %s WHERE uid = %s"
-            cur.execute(q,(phone_number, session['uid']))
-            conn.commit()
-            cur.close()
-            conn.close()
-            gc.collect()
-            location = '/userfile/'
-            return redirect(location)
-        else: # method = "GET"
-            return render_template('add_phone.html')
-    except Exception as e:
-        return 'THIS IS EN EXCEPTION: ' + str(e)    
 
 
 
@@ -482,7 +473,23 @@ def add_card():
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e)    
 
+@app.route('/delete_card/', methods = ["GET","POST"])
+def delete_card():
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            card_number = request.form['card_number']
+            q = "DELETE FROM creditcards WHERE cardnumber = %s AND uid = %s"
+            cur.execute(q,(card_number,session['uid']))
+            conn.commit()
+            cur.close()
+            conn.close()
+            gc.collect()
+            location = '/userfile/'
+            return redirect(location)
 
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e)    
 
 
 

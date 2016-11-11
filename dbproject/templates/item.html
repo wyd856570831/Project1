@@ -2,7 +2,7 @@
 
 
 <!-- item_data: iid, name, sellerid, class, description, price, quantity, sellingstatus, cancelstatus -->
-
+<!-- isbuyer : boolean-->
 
 {% block body %}
 
@@ -22,20 +22,22 @@
 	<!--<a href="/item/"><button>Add into likelist</button></a>-->
 	
 <!-- begin Likelistbox -->
-{% if likeit %}
-<p> This item is added into your Likelist.</p> <br>
-{% else %}
-<form method='POST' action="/add_likelist/">
-    Do you like it？   
-    <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
-    <input type='submit' value='Add into Likelist' />
-</form>
+{% if isbuyer %}
+    {% if likeit %}
+    <p> This item is added into your Likelist.</p> <br>
+    {% else %}
+    <form method='POST' action="/add_likelist/">
+        Do you like it？   
+        <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
+        <input type='submit' value='Add into Likelist' />
+    </form>
+    {% endif %}
 {% endif %}
 
 <!-- end Likelistbox -->
 {% if not item_data[7] %}
 <p> This item has been sold.</p> <br>
-{% else %}
+{% elif isbuyer %}
 <form method='POST' action="/purchase/"> 
     <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
     <input type = 'hidden' name = 'seller_id' value = {{item_data[2]}} />
@@ -62,6 +64,7 @@ comment: {{comment[2]}}
 <br>
 {% endfor %}
 
+{% if isbuyer %}
 <form method='POST' action="">
     Make comment:
     <br />
@@ -70,6 +73,7 @@ comment: {{comment[2]}}
     
     <input type='submit' value='Submit' />
 </form>
+{% endif %}
 <!-- end commentbox -->
 
 

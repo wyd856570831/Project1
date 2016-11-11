@@ -2,15 +2,34 @@
 
 {% block body %}
 
-<h3>My selling</h3>
 
-{% for selling_item in selling_items %}
+<!-- selling_item: name, theclass, price, iid  -->
+<h3>My Selling Items</h3>
+
+<!-- {% for selling_item in selling_items %}
 name: {{selling_item[0]}}
 class: {{selling_item[1]}}
 price: {{selling_item[2]}}
 <br>
 <br>
-{% endfor %}
+{% endfor %} -->
+
+
+<table class="table table-striped">
+	<tr>
+        <th>name</th>
+        <th>class</th>
+        <th>price</th>
+    </tr>
+    {% for data in selling_items %}
+    <tr>
+        <th><a href="/item/{{data[3]}}/">{{data[0]}}</a></th>
+        <th>{{data[1]}}</th>
+        <th>{{data[2]}}</th>
+
+    </tr>
+    {% endfor %}
+</table>
 
 {% endblock %}
 

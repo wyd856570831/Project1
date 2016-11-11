@@ -23,17 +23,24 @@
 </form>
 {% endif %}
 </h3>
-<h3> Credit Card: 
+<h3> Credit Card: <br>
 {% if card_data %}
-****{{card_data[1][12:]}}
-<form method='GET' action="/add_card/">
-    <input type='submit' value='Change Card' />
+{% for data in card_data %}
+card holder: {{data[2]}} <br>
+card number: ****{{data[1][12:]}} <br>
+<form method='POST' action="/delete_card/">
+	<input type = 'hidden' name = 'card_number' value = {{data[1]}} />
+    <input type='submit' value='Delete Card' />
 </form>
-{% else %}
+<br>
+<br>
+{% endfor %}
+
+
+
+{% endif %}
 <form method='GET' action="/add_card/">
     <input type='submit' value='ADD Card' />
 </form>
-{% endif %}
-
 
 {% endblock %}
