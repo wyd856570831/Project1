@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, \
-    url_for, request, session, flash, g, make_response, send_file
+    url_for, request, session, flash, g, make_response, send_file, send_from_directory
 
 from wtforms import Form, BooleanField, TextField, PasswordField, validators
 from wtforms.fields.html5 import EmailField
@@ -10,7 +10,28 @@ from sqlalchemy.pool import NullPool
 from passlib.hash import sha256_crypt
 import gc
 
+
+
 app = Flask(__name__)
+
+
+########### These lines below is for submitting picture
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
+import os
+
+UPLOAD_FOLDER='/Users/AnWang/Desktop/donggeyanshi/Project1/dbproject/static/picture/'
+ALLOWED_EXTENSIONS=set(['txt','pdf','png','jpg','jpeg','gif'])
+
+app.config['UPLOAD_FOLDER']=UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.',1)[1] in ALLOWED_EXTENSIONS
+
+######################################################
+
+
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/db_project'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://aw3001:cy487@104.196.175.120/postgres'
 
@@ -86,11 +107,9 @@ def register():
 
                 conn.commit()
                 flash('Thanks for registering')
-                cur.close()
-                conn.close()
-                gc.collect()
-                #session['logged_in'] = True
-                #session['email'] = email
+                #cur.close()
+                #conn.close()
+                #gc.collect()
                 return redirect(url_for('homepage'))    
 
         gc.collect()
@@ -98,6 +117,17 @@ def register():
 
     except Exception as e :
         return 'THIS IS EN EXCEPTION: ' + str(e)
+
+######### add teardown_request ##################
+@app.teardown_request
+def teardown_request(exception):
+	try:
+		cur.close()
+		conn.close()
+		gc.collect()
+	except Exception as e:
+		pass
+######### add teardown_request ##################
 
 @app.route('/index/<string:type_chosen>/', methods=["GET","POST"])
 def index2(type_chosen):
@@ -181,10 +211,6 @@ def item(iid):
     try:
         conn, cur = connect()
         if request.method == "POST":
-            #print "*****************************"
-            #print session['uid']
-            #print iid 
-            #print request.form['comment']
             #cur.execute("INSERT into comments (uid, iid, content) values ({}, {}, '{}')".format(session['uid'], iid, request.form['comment']))   
             cur.execute("SET timezone = 'EST' ")  # set to New York time.
             cur.execute("SELECT localtimestamp(0)")
@@ -214,9 +240,18 @@ def item(iid):
                 FROM comments AS c, users AS u WHERE u.uid = c.uid AND c.iid = %s"""
         cur.execute(q,(iid,))
         comments = cur.fetchall()
+
+        q = "SELECT image from pictures_belongs where iid = %s"
+        cur.execute(q, (iid,))
+        pictures = cur.fetchall()
+        print "*********** pictures *******"
+        print pictures
+        for picture in pictures:
+        	print picture[0]
+
         #print comments[5][1]
         return render_template('item.html', item_data=item_data, \
-            seller_name=seller_name, comments=comments, likeit = likeIt, isbuyer = isbuyer)
+            seller_name=seller_name, comments=comments, likeit = likeIt, isbuyer = isbuyer, pictures=pictures)
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
@@ -562,6 +597,28 @@ def delete_card():
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e)    
 
+
+@app.route('/upload_picture/',methods=['GET','POST'])
+def upload_picture():
+    if request.method=='POST':
+        file=request.files['file']
+        if file and allowed_file(file.filename):
+        	item_id = request.form['item_id']
+        	conn, cur = connect()
+        	q = "SELECT count(*) from pictures_belongs where iid = %s"
+        	cur.execute(q, (item_id,))
+        	count = cur.fetchone()[0]
+        	picture_name = str(item_id) + '_' + str(count + 1)
+        	cur.execute("INSERT into pictures_belongs values (%s, %s)", (item_id, picture_name))
+        	conn.commit()
+           	file.save(os.path.join(app.config['UPLOAD_FOLDER'],picture_name))
+           	return redirect(url_for('item', iid = item_id))
+   	return redirect(url_for('homepage'))
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],filename)
 
 
 
