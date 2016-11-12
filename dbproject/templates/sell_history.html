@@ -1,0 +1,40 @@
+{% extends "header.html" %}
+
+{% block head %}
+	<!-- <h2>Hello {{ name_to_pass }} </h2> -->
+{% endblock %}
+
+{% block body %}
+	
+<h3>Sell History</h3>
+
+
+<!-- item_data: i.iid, i.name, i.theclass, i.price, t.time, u.name   -->
+<table class="table table-striped">
+	<tr>
+        <th>item</th>
+        <th>class</th>
+        <th>price</th>
+        <th>transaction time</th>
+        <th>buyer</th>
+    </tr>
+    {% for data in item_data %}
+    <tr>
+        <th><a href="/item/{{data[0]}}/">{{data[1]}}</a></th>
+        <th>{{data[2]}}</th>
+        <th>{{data[3]}}</th>
+        <th>{{data[4]}}</th>
+        <th>{{data[5]}}</th>
+    </tr>
+    {% endfor %}
+</table>
+
+
+	
+
+	
+
+{% endblock %}
+
+
+
