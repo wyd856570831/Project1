@@ -250,8 +250,9 @@ def purchase():
                     VALUES (%s, %s, %s, %s, %s)"""
                 cur.execute(q,(seller_id, buyer_id, item_id, localtime, price))
                 
-                q = "UPDATE items SET quantity = %s WHERE iid = %s"
-                cur.execute(q, (left_quantity, item_id))
+                if left_quantity > 0:
+                    q = "UPDATE items SET quantity = %s WHERE iid = %s"
+                    cur.execute(q, (left_quantity, item_id))
                 if left_quantity == 0:
                     q = "UPDATE items SET sellingstatus = FALSE WHERE iid = %s"
                     cur.execute(q, (item_id,))
@@ -298,7 +299,8 @@ def buy_history():
         conn, cur = connect()
 
         q = """SELECT i.iid, name, theclass, price, time FROM items AS i, transactions AS t
-                  WHERE t.buyerid = %s AND t.iid = i.iid"""
+                  WHERE t.buyerid = %s AND t.iid = i.iid
+                  ORDER BY time DESC"""
         cur.execute(q,(session['uid'],))
         item_data = cur.fetchall()
 
@@ -319,7 +321,8 @@ def sell_history():
 
         q = """SELECT i.iid, i.name, i.theclass, i.price, t.time, u.name  
                 FROM users AS u, items AS i, transactions AS t
-                WHERE t.sellerid = %s AND t.iid = i.iid AND u.uid = t.buyerid"""
+                WHERE t.sellerid = %s AND t.iid = i.iid AND u.uid = t.buyerid
+                ORDER BY t.time DESC"""
         cur.execute(q,(session['uid'],))
         item_data = cur.fetchall()
 

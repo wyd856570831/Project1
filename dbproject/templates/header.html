@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html>
 
+
 <head>
     <meta charset="utf-8">
     <title>Columbia Second-hand Trading</title>
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
 </head>
-<header>
-    <ul class="nav navbar-nav navbar-right">
+<header >
+
+
+    <ul class="nav navbar-nav navbar-right" >
 
         {% if session.logged_in %}
 
             {% if session['character'] == 'buyer'%}
-                <li><a href="/logout/"><span class="glyphicon glyphicon-log-in"></span> log out</a></li>
+                <li><a href="/logout/"><span class="glyphicon glyphicon-log-in"></span>  log out </a></li>
                 <li class="dropdown">
                     <a href="/register/" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-align-justify"></span> my account&nbsp;&nbsp;<span class="caret"></span></a>
                     <ul class="dropdown-menu">
@@ -71,7 +75,6 @@
 </header>
 
 <body>
-
 
 	{% with messages = get_flashed_messages() %}
   {% if messages %}
