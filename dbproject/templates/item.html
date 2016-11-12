@@ -1,7 +1,7 @@
 {% extends "header.html" %}
 
 
-<!-- item_data: iid, name, sellerid, class, description, price, quantity, sellingstatus, cancelstatus -->
+<!-- item_data: iid, name, sellerid, class, description, price, quantity, 7 sellingstatus, cancelstatus -->
 <!-- isbuyer : boolean-->
 
 {% block body %}
@@ -38,9 +38,10 @@
 <br>
 <br>
 <!-- end Likelistbox -->
-{% if cancelstatus %}
+
+{% if item_data[8] %}
     <p> This item has been cancelled.</p> <br>
-{% elif sellingstatus == false %}
+{% elif not item_data[7] %}
     <p> This item has been sold.</p> <br>
 {% elif isbuyer %}
 
