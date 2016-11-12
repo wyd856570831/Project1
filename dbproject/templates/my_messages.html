@@ -4,7 +4,9 @@
 {% block body %}
 	<h3>My Messages</h3>
 
-<h3>Received Messages</h3>
+
+<!-- u.uid u.name, m.title, m.content, m.time  -->
+<h4>Received Messages</h4>
 
 <table class="table table-striped">
 	<tr>
@@ -12,18 +14,24 @@
         <th>Title</th>
         <th>Content</th>
         <th>Time</th>
+        <th>Reply</th>
     </tr>
     {% for message in received_messages %}
     <tr>
-        <th>{{message[0]}}</th>
         <th>{{message[1]}}</th>
         <th>{{message[2]}}</th>
         <th>{{message[3]}}</th>
+        <th>{{message[4]}}</th>
+        <th> <form method='POST' style="display:inline-block" action="/new_message/">
+            <input type = 'hidden' name = 'receiver_id' value = {{message[0]}} />
+            <input type='submit' value='Reply' />
+        </form>
+        <th>
     </tr>
     {% endfor %}
 </table>
 
-<h3>Sent Messages</h3>
+<h4>Sent Messages</h4>
 
 <table class="table table-striped">
 	<tr>
@@ -31,13 +39,19 @@
         <th>Title</th>
         <th>Content</th>
         <th>Time</th>
+        <th>Reply</th>
     </tr>
     {% for message in sent_messages %}
     <tr>
-        <th>{{message[0]}}</th>
         <th>{{message[1]}}</th>
         <th>{{message[2]}}</th>
         <th>{{message[3]}}</th>
+        <th>{{message[4]}}</th>
+        <th><form method='POST' style="display:inline-block" action="/new_message/">
+            <input type = 'hidden' name = 'receiver_id' value = {{message[0]}} />
+            <input type='submit' value='Reply' />
+        </form>
+        </th>
     </tr>
     {% endfor %}
 </table>

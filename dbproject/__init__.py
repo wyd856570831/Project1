@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, \
     url_for, request, session, flash, g, make_response, send_file
 
 from wtforms import Form, BooleanField, TextField, PasswordField, validators
+from wtforms.fields.html5 import EmailField
 import psycopg2
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import *
@@ -30,7 +31,8 @@ def homepage():
         return str(e)
 
 class RegistrationForm(Form):
-    email = TextField('Email Address', [validators.Length(max=50)])
+    #email = TextField('Email Address', [validators.Length(max=50)])
+    email = EmailField('Email address', [validators.DataRequired(), validators.Email()])
     name = TextField('name', [validators.Length(max=20)])
     password = PasswordField('New Password', [
         validators.Required(),
@@ -43,7 +45,7 @@ class RegistrationForm(Form):
 def register():
     try:
         form = RegistrationForm(request.form)
-        if request.method == 'POST' and form.validate():    # where comes request?
+        if request.method == 'POST' and form.validate():    
             email = form.email.data 
             name = form.name.data
             password = sha256_crypt.encrypt((str(form.password.data)))
@@ -102,7 +104,7 @@ def index2(type_chosen):
     try:
         print type_chosen
         conn, cur = connect() 
-        cur.execute("SELECT name, theclass, price, iid, quantity from items where theclass = '{}'".format(type_chosen))
+        cur.execute("SELECT name, theclass, price, iid, quantity, sellingstatus from items where theclass = '{}'".format(type_chosen))
         item_data = cur.fetchall()
         return render_template('index.html', item_data=item_data)
 
@@ -113,7 +115,7 @@ def index2(type_chosen):
 def index():
     try:
         conn, cur = connect() 
-        cur.execute("SELECT name, theclass, price, iid, quantity from items")
+        cur.execute("SELECT name, theclass, price, iid, quantity, sellingstatus from items")
         item_data = cur.fetchall()
         return render_template('index.html', item_data=item_data)
 
@@ -145,8 +147,8 @@ def login():
                 q = "SELECT name from users where email = %s"
                 cur.execute(q,(request.form['email'],))
                 user_name = cur.fetchone()[0]
-                flash('Hello {}'.format(user_name))
-
+                #flash('Hello {}'.format(user_name))
+                session['username'] = user_name
                 #cur.execute("SELECT * from buyers where uid = {}".format(data[0]))
                 q = "SELECT * from buyers where uid = %s"
                 cur.execute(q,(data[0],))
@@ -155,7 +157,7 @@ def login():
                     return redirect(url_for("index"))
                 else:
                     session['character'] = 'seller'
-                    return redirect(url_for("sell"))
+                    return redirect(url_for("mysell"))
 
             else:
                 error = "Invalid password, try again."
@@ -206,6 +208,7 @@ def item(iid):
         q = "SELECT * FROM users u, buyers b WHERE u.uid = b.uid AND u.uid = %s"
         cur.execute(q,(session['uid'],))
         isbuyer = not (cur.fetchone() is None)
+        print isbuyer
         #cur.execute("SELECT u.name, c.content FROM comments AS c, users AS u WHERE u.uid = c.uid AND c.iid = {}".format(iid))
         q = """SELECT u.name, c.time, c.content, c.uid 
                 FROM comments AS c, users AS u WHERE u.uid = c.uid AND c.iid = %s"""
@@ -223,6 +226,8 @@ def purchase():
     try:
         conn, cur = connect()
         if request.method == "POST":
+            print "purchase/"
+            buy_quantity = 1
             seller_id = request.form['seller_id']
             buyer_id = session['uid']
             item_id = request.form['item_id']
@@ -235,11 +240,22 @@ def purchase():
             cur.execute(q, (item_id,))
             isselling = cur.fetchone()
             if isselling[0]:
+                q = "SELECT quantity FROM items WHERE iid = %s"
+                cur.execute(q, (item_id,))
+                real_quantity = cur.fetchone()
+                if buy_quantity > real_quantity[0]:
+                    left_quantity = 0
+                else: left_quantity = real_quantity[0] - buy_quantity
                 q = """INSERT INTO transactions (sellerid, buyerid, iid, time, totalprice) 
                     VALUES (%s, %s, %s, %s, %s)"""
                 cur.execute(q,(seller_id, buyer_id, item_id, localtime, price))
-                q = "UPDATE items SET sellingstatus = FALSE WHERE iid = %s"
-                cur.execute(q, (item_id,))
+                
+                q = "UPDATE items SET quantity = %s WHERE iid = %s"
+                cur.execute(q, (left_quantity, item_id))
+                if left_quantity == 0:
+                    q = "UPDATE items SET sellingstatus = FALSE WHERE iid = %s"
+                    cur.execute(q, (item_id,))
+
                 conn.commit()
 
         cur.close()
@@ -250,6 +266,31 @@ def purchase():
 
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
+
+@app.route('/cancel/', methods = ["GET","POST"])
+def cancel():
+    # tid | sellerid | buyerid | iid |        time         | totalprice 
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            item_id = request.form['item_id']
+
+            q = "UPDATE items SET cancelstatus = %s WHERE iid = %s"
+            cur.execute(q, (True, item_id))
+            q = "UPDATE items SET sellingstatus = %s WHERE iid = %s"
+            cur.execute(q, (False, item_id))
+     
+            conn.commit()
+
+        cur.close()
+        conn.close()
+        gc.collect()
+        return redirect('/mysell/')
+
+
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e) 
+
 
 @app.route('/buy_history/', methods = ["GET","POST"])
 def buy_history():
@@ -265,6 +306,27 @@ def buy_history():
         conn.close()
         gc.collect()
         return render_template('buy_history.html', item_data = item_data)
+
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e) 
+
+
+
+@app.route('/sell_history/', methods = ["GET","POST"])
+def sell_history():
+    try:
+        conn, cur = connect()
+
+        q = """SELECT i.iid, i.name, i.theclass, i.price, t.time, u.name  
+                FROM users AS u, items AS i, transactions AS t
+                WHERE t.sellerid = %s AND t.iid = i.iid AND u.uid = t.buyerid"""
+        cur.execute(q,(session['uid'],))
+        item_data = cur.fetchall()
+
+        cur.close()
+        conn.close()
+        gc.collect()
+        return render_template('sell_history.html', item_data = item_data)
 
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
@@ -318,22 +380,22 @@ def compose_message():
 def my_messages():
     try:
         conn, cur = connect()
-        q = """SELECT u.name, m.title, m.content, m.time 
+        q = """SELECT u.uid, u.name, m.title, m.content, m.time 
                 FROM users AS u, messages AS m 
                 WHERE u.uid = m.uid1 AND m.uid2 = %s
                 ORDER BY m.time DESC"""
-        print q
+        # print q
         cur.execute(q,(session['uid'],))
         received_messages = cur.fetchall()
-        print received_messages
+        # print received_messages
 
-        q = """SELECT u.name, m.title, m.content, m.time 
+        q = """SELECT u.uid, u.name, m.title, m.content, m.time 
                 FROM users AS u, messages AS m 
                 WHERE u.uid = m.uid2 AND m.uid1 = %s
                 ORDER BY m.time DESC"""
         cur.execute(q,(session['uid'],))
         sent_messages = cur.fetchall()
-        print sent_messages
+        # print sent_messages
         conn.commit()
         cur.close()
         conn.close()
@@ -376,6 +438,8 @@ def buyers_likelist():
 
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
+
+
 @app.route('/sell/')
 def sell():
     try:
@@ -401,13 +465,17 @@ def mysell():
             conn.commit()
 
         #cur.execute("SELECT name, theclass, price FROM items WHERE sellerid = {}".format(session['uid']))
-        q = "SELECT name, theclass, price, iid FROM items WHERE sellerid = %s"
+        q = """SELECT name, theclass, price, iid, sellingstatus, cancelstatus FROM items 
+                WHERE sellerid = %s
+                ORDER BY sellingstatus DESC, cancelstatus ASC"""
         cur.execute(q,(session['uid'],))
         selling_items = cur.fetchall()
         return render_template('mysell.html', selling_items=selling_items)
 
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
+
+
 
 @app.route('/userfile/', methods = ["GET", "POST"])
 def userfile():

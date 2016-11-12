@@ -3,7 +3,7 @@
 {% block body %}
 
 
-<!-- selling_item: name, theclass, price, iid  -->
+<!-- selling_item: name, theclass, price, iid, sellingstatus, cancelstatus  -->
 <h3>My Selling Items</h3>
 
 <!-- {% for selling_item in selling_items %}
@@ -14,19 +14,32 @@ price: {{selling_item[2]}}
 <br>
 {% endfor %} -->
 
+<form method='GET' action="/sell/">  
+	<input type='submit' value='Sell An Item' />
+</form>
+<br>
 
 <table class="table table-striped">
 	<tr>
         <th>name</th>
         <th>class</th>
         <th>price</th>
+        <th>status</th>
     </tr>
     {% for data in selling_items %}
     <tr>
         <th><a href="/item/{{data[3]}}/">{{data[0]}}</a></th>
         <th>{{data[1]}}</th>
         <th>{{data[2]}}</th>
-
+        <th> 
+        {% if data[5] %}	<!-- cancelstatus -->
+        	Cancelled
+        {% elif data[4] %}   <!-- sellingstatus -->
+        	Selling
+        {% else %}
+        	Sold
+        {% endif %}
+        </th>
     </tr>
     {% endfor %}
 </table>

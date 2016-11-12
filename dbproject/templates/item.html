@@ -5,17 +5,18 @@
 <!-- isbuyer : boolean-->
 
 {% block body %}
-
-	<h3>name: {{item_data[1]}}</h3>
-	<h3>seller: {{seller_name[0]}}</h3>
-	<form method='POST' action="/new_message/">  
+    <h3> Item Information </h3>
+	<h4>name: {{item_data[1]}}</h4>
+	<h4> seller: {{seller_name[0]}} 
+     <form method='POST' action="/new_message/" style="display:inline-block">  
     	<input type = 'hidden' name = 'receiver_id' value = {{item_data[2]}} />
-    	<input type='submit' value='Send the seller a message' />
-	</form>
-	<h3>class: {{item_data[3]}}</h3>
-	<h3>price: ${{item_data[5]}}</h3>
-	<h3>quantity: {{item_data[6]}}</h3>
-	<h3>description:</h3>
+    	<input type='submit'  value='Send a message' />
+	</form> 
+    </h4>
+	<h4>class: {{item_data[3]}}</h4>
+	<h4>price: ${{item_data[5]}}</h4>
+	<h4>quantity: {{item_data[6]}}</h4>
+	<h4>description:</h4>
 	<p>{{item_data[4]}}</p>
 
 
@@ -34,32 +35,45 @@
     {% endif %}
 {% endif %}
 
+<br>
+<br>
 <!-- end Likelistbox -->
-{% if not item_data[7] %}
-<p> This item has been sold.</p> <br>
+{% if cancelstatus %}
+    <p> This item has been cancelled.</p> <br>
+{% elif sellingstatus == false %}
+    <p> This item has been sold.</p> <br>
 {% elif isbuyer %}
+
 <form method='POST' action="/purchase/"> 
+    <!-- <input type="text" name = 'quantity' onkeypress='return event.charCode >= 48 && event.charCode <= 57'>
+    </input> -->
     <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
     <input type = 'hidden' name = 'seller_id' value = {{item_data[2]}} />
     <input type = 'hidden' name = 'price' value = {{item_data[5]}} />
     <input type='submit' value='Buy it' />
 </form>
+{% elif session['uid'] == item_data[2] %}
+<form method='POST' action="/cancel/"> 
+    <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
+    <input type='submit' value = 'Cancel it' />
+</form>
 {% endif %}
 
 
-
+<br>
+<br>
+<h4> Comments: </h4>
 <!-- begin commentbox -->
 {% for comment in comments %}
-<br>
-<br>
-<br>
+
 user:{{comment[0]}} 
-<form method='POST' action="/new_message/">
+<form method='POST' style="display:inline-block" action="/new_message/">
     <input type = 'hidden' name = 'receiver_id' value = {{comment[3]}} />
     <input type='submit' value='Send a message' />
-</form>
+</form> <br>
 time: {{comment[1]}} <br>
 comment: {{comment[2]}}
+<br>
 <br>
 <br>
 {% endfor %}

@@ -7,40 +7,46 @@
 <!-- card_data: uid, cardnumber, ownername -->
 
 {% block body %}
-<h1> Profile </h1>
-<h3> Name: {{user_data[1]}} </h3> 
-<h3> Email: {{user_data[3]}} </h3> 
-<h3> Phone: 
-{% if user_data[4] %}
-{{user_data[4]}}
-<form method='GET' action="/add_phone/">
+<h2> Profile </h2>
+<h4> Name: {{user_data[1]}} </h4> 
+<h4> Email: {{user_data[3]}} </h4> 
+<h4> Phone: {% if user_data[4] %}  {{user_data[4]}} <a href="/add_phone/"><button>Change Number</button></a>
+<!-- <form method='GET' action="/add_phone/">
     <input type='submit' value='Change Number' />
-</form>
+</form> -->
+
 
 {% else %}
-<form method='GET' action="/add_phone/">
+
+<a href="/add_phone/"><button>Add Number</button></a>
+<!-- <form method='GET' action="/add_phone/">
     <input type='submit' value='ADD' />
 </form>
-{% endif %}
-</h3>
-<h3> Credit Card: <br>
-{% if card_data %}
-{% for data in card_data %}
-card holder: {{data[2]}} <br>
-card number: ****{{data[1][12:]}} <br>
-<form method='POST' action="/delete_card/">
+ -->{% endif %}
+
+</h4>
+<br>
+<br>
+
+<h4> Credit Cards: 
+<form method='GET' style="display:inline-block" action="/add_card/">
+    <input type='submit' value='ADD Card' />
+</form>
+</h4>
+<h4> {% if card_data %} {% for data in card_data %}
+			card holder: {{data[2]}} <br>
+			card number: ****{{data[1][12:]}} 
+<form method='POST' style="display:inline-block" action="/delete_card/">
 	<input type = 'hidden' name = 'card_number' value = {{data[1]}} />
     <input type='submit' value='Delete Card' />
 </form>
 <br>
 <br>
 {% endfor %}
-
+</h4>
 
 
 {% endif %}
-<form method='GET' action="/add_card/">
-    <input type='submit' value='ADD Card' />
-</form>
+
 
 {% endblock %}

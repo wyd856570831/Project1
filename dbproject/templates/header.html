@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Python Programming Tutorials</title>
+    <title>Columbia Second-hand Trading</title>
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
 </head>
 <header>
@@ -41,7 +41,33 @@
         {% endif %}
     </ul>
 
-    {% block head %} {% endblock %}
+
+    <ul class="nav nav-tabs">
+<!--     <li role="presentation" class="active"><a href="/index/">Home</a></li> -->
+    {% if session.logged_in %}
+        {% if session['character'] == 'buyer'%}
+            <li role="presentation"><a href="/index/">Home</a></li>
+            <li role="presentation"><a href="/userfile/">Profile</a></li>
+            <li role="presentation"><a href="/my_messages/">Messages</a></li>
+            <li role="presentation"><a href="/buyers_likelist/">Like List</a></li>
+            <li role="presentation"><a href="/buy_history/">Buy History</a></li>
+        {% else %}
+            <li role="presentation"><a href="/index/">Home</a></li>
+            <li role="presentation"><a href="/userfile/">Profile</a></li>
+            <li role="presentation"><a href="/my_messages/">Messages</a></li>
+            <li role="presentation"><a href="/mysell/">Selling List</a></li>
+            <li role="presentation"><a href="/sell_history/">Sell History</a></li>
+        {% endif %}
+    {% endif %}
+    </ul>
+    
+    {% if session.logged_in %}
+        Hi, {{session['username']}}
+    {% endif %}
+
+    {% block head %} 
+
+    {% endblock %}
 </header>
 
 <body>
@@ -60,7 +86,9 @@
 
     <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    {% block body %} {% endblock %}
+    {% block body %} 
+
+    {% endblock %}
 </body>
 
 </html>
