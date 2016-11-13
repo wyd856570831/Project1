@@ -18,6 +18,13 @@
 	<h4>quantity: {{item_data[6]}}</h4>
 	<h4>description:</h4>
 	<p>{{item_data[4]}}</p>
+    <br>
+    <h4>Here shows the pictures:</h4>
+    {% for picture in pictures %}
+        <img src="{{ url_for('static', filename='picture/{}'.format(picture[0])) }}" width="128" height="128" > 
+        <br>
+        <br>
+    {% endfor %}
 
 
 	<!--<a href="/item/"><button>Add into likelist</button></a>-->
@@ -54,10 +61,21 @@
     <input type='submit' value='Buy it' />
 </form>
 {% elif session['uid'] == item_data[2] %}
+Add more picture
+<form action="/upload_picture/" method="POST" enctype="multipart/form-data">
+    <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
+    <input type="file" name="file" />
+    <input type="submit" value="upload" />
+</form>
+
 <form method='POST' action="/cancel/"> 
     <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
     <input type='submit' value = 'Cancel it' />
 </form>
+<br>
+
+
+  
 {% endif %}
 
 
