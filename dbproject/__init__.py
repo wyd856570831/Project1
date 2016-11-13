@@ -22,7 +22,8 @@ sys.setdefaultencoding("utf-8")
 import os
 
 #UPLOAD_FOLDER='/Users/AnWang/Desktop/donggeyanshi/Project1/dbproject/static/picture/'
-UPLOAD_FOLDER='/Users/yuedongwang/Documents/Intro to Database/Project1/part3/Project1/dbproject/static/picture/'
+#UPLOAD_FOLDER='/Users/yuedongwang/Documents/Intro to Database/Project1/part3/Project1/dbproject/static/picture/'
+UPLOAD_FOLDER='Project1/dbproject/static/picture/'
 ALLOWED_EXTENSIONS=set(['txt','pdf','png','jpg','jpeg','gif'])
 
 app.config['UPLOAD_FOLDER']=UPLOAD_FOLDER
