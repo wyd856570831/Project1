@@ -3,6 +3,8 @@
 
 <!-- item_data: iid, name, sellerid, class, description, price, quantity, 7 sellingstatus, cancelstatus -->
 <!-- isbuyer : boolean-->
+<!-- pictures: filename, imagenumber -->
+
 
 {% block body %}
     <h3> Item Information </h3>
@@ -21,7 +23,14 @@
     <br>
     <h4>Here shows the pictures:</h4>
     {% for picture in pictures %}
-        <img src="{{ url_for('static', filename='picture/{}'.format(picture[0])) }}" width="128" height="128" > 
+        <!-- {{picture[0]}} -->
+        <img src="{{ url_for('static', filename='picture/{}'.format(picture[0])) }}" width="128" height="128" >
+        <form method='POST' action="/delete_picture/" style="display:inline-block">  
+            <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
+            <input type = 'hidden' name = 'picture_name' value = {{picture[0]}} />
+            <input type = 'hidden' name = 'image_number' value = {{picture[1]}} />
+            <input type='submit'  value='Delete' />
+        </form> 
         <br>
         <br>
     {% endfor %}
@@ -61,12 +70,14 @@
     <input type='submit' value='Buy it' />
 </form>
 {% elif session['uid'] == item_data[2] %}
-Add more picture
+Add a picture
 <form action="/upload_picture/" method="POST" enctype="multipart/form-data">
     <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
     <input type="file" name="file" />
     <input type="submit" value="upload" />
 </form>
+<br>
+<br>
 
 <form method='POST' action="/cancel/"> 
     <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />

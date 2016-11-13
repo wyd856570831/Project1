@@ -21,7 +21,8 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import os
 
-UPLOAD_FOLDER='/Users/AnWang/Desktop/donggeyanshi/Project1/dbproject/static/picture/'
+#UPLOAD_FOLDER='/Users/AnWang/Desktop/donggeyanshi/Project1/dbproject/static/picture/'
+UPLOAD_FOLDER='/Users/yuedongwang/Documents/Intro to Database/Project1/part3/Project1/dbproject/static/picture/'
 ALLOWED_EXTENSIONS=set(['txt','pdf','png','jpg','jpeg','gif'])
 
 app.config['UPLOAD_FOLDER']=UPLOAD_FOLDER
@@ -60,7 +61,7 @@ class RegistrationForm(Form):
         validators.EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
-    accept_tos = BooleanField('I accept the <a href="/about/tos" target="blank">agreement</a>', [validators.Required()])
+    accept_tos = BooleanField('I accept the <a href="/agreement/" target="blank">agreement</a>', [validators.Required()])
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
@@ -117,6 +118,10 @@ def register():
 
     except Exception as e :
         return 'THIS IS EN EXCEPTION: ' + str(e)
+
+@app.route('/agreement/',methods = ['GET', 'POST'])
+def agreement():
+    return render_template('agreement.html')
 
 ######### add teardown_request ##################
 @app.teardown_request
@@ -234,14 +239,14 @@ def item(iid):
         q = "SELECT * FROM users u, buyers b WHERE u.uid = b.uid AND u.uid = %s"
         cur.execute(q,(session['uid'],))
         isbuyer = not (cur.fetchone() is None)
-        print isbuyer
+        
         #cur.execute("SELECT u.name, c.content FROM comments AS c, users AS u WHERE u.uid = c.uid AND c.iid = {}".format(iid))
         q = """SELECT u.name, c.time, c.content, c.uid 
                 FROM comments AS c, users AS u WHERE u.uid = c.uid AND c.iid = %s"""
         cur.execute(q,(iid,))
         comments = cur.fetchall()
 
-        q = "SELECT image from pictures_belongs where iid = %s"
+        q = "SELECT filename, imagenumber from pictures_belongs where iid = %s"
         cur.execute(q, (iid,))
         pictures = cur.fetchall()
         print "*********** pictures *******"
@@ -600,21 +605,53 @@ def delete_card():
 
 @app.route('/upload_picture/',methods=['GET','POST'])
 def upload_picture():
-    if request.method=='POST':
-        file=request.files['file']
-        if file and allowed_file(file.filename):
-        	item_id = request.form['item_id']
-        	conn, cur = connect()
-        	q = "SELECT count(*) from pictures_belongs where iid = %s"
-        	cur.execute(q, (item_id,))
-        	count = cur.fetchone()[0]
-        	picture_name = str(item_id) + '_' + str(count + 1)
-        	cur.execute("INSERT into pictures_belongs values (%s, %s)", (item_id, picture_name))
-        	conn.commit()
-           	file.save(os.path.join(app.config['UPLOAD_FOLDER'],picture_name))
-           	return redirect(url_for('item', iid = item_id))
-   	return redirect(url_for('homepage'))
+    try:
+        conn, cur = connect()
+        if request.method=='POST':
+            file=request.files['file']
+            item_id = request.form['item_id']
+            if file and allowed_file(file.filename):
+            	#item_id = request.form['item_id']
+            	#q = "SELECT count(*) from pictures_belongs where iid = %s"
+                q = "SELECT max(imagenumber) FROM pictures_belongs WHERE iid = %s GROUP BY iid"
+                print q
+            	cur.execute(q, (item_id,))
+                images = cur.fetchone()
+                if images is None:
+                    image_number = 0
+                else: image_number = images[0]
+                image_number += 1
+            	picture_name = str(item_id) + '_' + str(image_number)
+            	cur.execute("INSERT into pictures_belongs values (%s, %s, %s)", (item_id, image_number, picture_name))
+            	print image_number, picture_name
+                conn.commit()
+               	file.save(os.path.join(app.config['UPLOAD_FOLDER'],picture_name))
+               	return redirect(url_for('item', iid = item_id))
+       	#return redirect(url_for('homepage'))
+        return redirect(url_for('item', iid = item_id))
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e) 
 
+@app.route('/delete_picture/',methods=['GET','POST'])
+def delete_picture():
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            item_id = request.form['item_id']
+            image_number = request.form['image_number']
+            picture_name = request.form['picture_name']
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], picture_name)
+            if os.path.isfile(filename):
+            #os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture_name))
+                os.remove(filename)
+            q = "DELETE FROM pictures_belongs WHERE iid = %s AND imagenumber = %s"
+            cur.execute(q,(item_id, image_number))
+            conn.commit()
+            return redirect(url_for('item', iid = item_id))
+
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e)  
+    
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
