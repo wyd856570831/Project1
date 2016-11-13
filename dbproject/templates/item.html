@@ -25,12 +25,14 @@
     {% for picture in pictures %}
         <!-- {{picture[0]}} -->
         <img src="{{ url_for('static', filename='picture/{}'.format(picture[0])) }}" width="128" height="128" >
+        {% if session['uid'] == item_data[2] %}
         <form method='POST' action="/delete_picture/" style="display:inline-block">  
             <input type = 'hidden' name = 'item_id' value = {{item_data[0]}} />
             <input type = 'hidden' name = 'picture_name' value = {{picture[0]}} />
             <input type = 'hidden' name = 'image_number' value = {{picture[1]}} />
             <input type='submit'  value='Delete' />
         </form> 
+        {% endif %}
         <br>
         <br>
     {% endfor %}
