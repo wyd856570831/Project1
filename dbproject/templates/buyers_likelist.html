@@ -7,20 +7,35 @@
 {% block body %}
 	
 <h3>Items in your Likelist</h3>
-
+<!-- item_data: name, theclass, price, iid, quantity, sellingstatus -->
 <table class="table table-striped">
 	<tr>
-        <th>title</th>
+        <th>item</th>
         <th>class</th>
         <th>price</th>
-        <th>quantity</th>
+        <!-- <th>quantity</th> -->
+        <th>Status</th>
+        <th>Edit</th>
     </tr>
     {% for data in item_data %}
     <tr>
         <th><a href="/item/{{data[3]}}/">{{data[0]}}</a></th>
         <th>{{data[1]}}</th>
         <th>{{data[2]}}</th>
-        <th>{{data[4]}}</th>
+        <!-- <th>{{data[4]}}</th> -->
+        <th>
+        {% if data[5] %}
+            Selling
+        {% else %}
+            Not Selling
+        {% endif %}
+        </th>
+        <th> 
+        <form method='POST' action="/delete_likelist/" style="display:inline-block">  
+            <input type = 'hidden' name = 'item_id' value = {{data[3]}} />
+            <input type='submit'  value='Delete' />
+        </form> 
+        </th>
     </tr>
     {% endfor %}
 </table>

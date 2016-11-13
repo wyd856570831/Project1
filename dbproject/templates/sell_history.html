@@ -9,7 +9,7 @@
 <h3>Sell History</h3>
 
 
-<!-- item_data: i.iid, i.name, i.theclass, i.price, t.time, u.name   -->
+<!-- item_data: i.iid, i.name, i.theclass, i.price, t.time, u.name, t.rating   -->
 <table class="table table-striped">
 	<tr>
         <th>item</th>
@@ -17,6 +17,7 @@
         <th>price</th>
         <th>transaction time</th>
         <th>buyer</th>
+        <th>rating</th>
     </tr>
     {% for data in item_data %}
     <tr>
@@ -25,6 +26,13 @@
         <th>{{data[3]}}</th>
         <th>{{data[4]}}</th>
         <th>{{data[5]}}</th>
+        <th>
+        {% if data[6] %}
+            <input id="input-2" name="rating" class="rating rating-loading" data-size = "xs" value = {{data[6]}}  data-readonly = ”true“ data-show-clear = "false" data-show-caption = "false"/> 
+        {% else %}
+            Not Rated
+        {% endif %}
+        </th>
     </tr>
     {% endfor %}
 </table>

@@ -8,7 +8,7 @@
 	
 <h3>Buy History</h3>
 
-<!-- item_data: iid, name, sellerid, class, description, 5 price, quantity, sellingstatus, cancelstatus -->
+<!-- item_data: i.iid, name, theclass, price, time, tid, rating, sellerid-->
 
 <table class="table table-striped">
 	<tr>
@@ -16,6 +16,7 @@
         <th>class</th>
         <th>price</th>
         <th>transaction time</th>
+        <th>rating</th>
     </tr>
     {% for data in item_data %}
     <tr>
@@ -23,15 +24,37 @@
         <th>{{data[2]}}</th>
         <th>{{data[3]}}</th>
         <th>{{data[4]}}</th>
+        <th>
+            {% if data[6] %}
+
+<!--             <form method='GET' style="display:inline" action=""> -->
+                <input id="input-2" name="rating" class="rating rating-loading" data-size = "xs" value = {{data[6]}}  data-readonly = ”true“ data-show-clear = "false" data-show-caption = "false"/> 
+<!--             </form> -->
+            {% else %}
+            <form method='POST' style="display:inline" action="/add_rating/">
+                <input type = 'hidden' name = 'tid' value = {{data[5]}} />
+                <input type = 'hidden' name = 'seller_id' value = {{data[7]}} />
+                <!-- {{data[7]}} -->
+                <table>
+                  <tr>
+                    <td >
+                      <input id="input-1" name="rating" class="rating rating-loading" data-min="0" data-max="5" data-step="1" data-size = "xs" data-show-clear = "false" data-show-caption = "false"/> 
+                    </td>
+                    <td>
+                      <input type='submit' value='Rate' />
+                    </td>
+                  </tr>
+                </table>
+<!--                 <input id="input-1" name="rating" class="rating rating-loading" data-min="0" data-max="5" data-step="1" data-size = "xs"/> 
+                <input type='submit' value='Rate' /> -->
+            </form>
+            {% endif %}
+        </th>
     </tr>
     {% endfor %}
 </table>
 
-
 	
-
-	
-
 {% endblock %}
 
 

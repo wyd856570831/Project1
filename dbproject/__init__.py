@@ -109,11 +109,13 @@ def register():
 
                 conn.commit()
                 flash('Thanks for registering')
+
                 #cur.close()
                 #conn.close()
                 #gc.collect()
                 return redirect(url_for('homepage'))    
-
+        cur.close()
+        conn.close()
         gc.collect()
         return render_template('register.html', form=form)
 
@@ -142,6 +144,9 @@ def index2(type_chosen):
         conn, cur = connect() 
         cur.execute("SELECT name, theclass, price, iid, quantity, sellingstatus from items where theclass = '{}'".format(type_chosen))
         item_data = cur.fetchall()
+        cur.close()
+        conn.close()
+        gc.collect()
         return render_template('index.html', item_data=item_data)
 
     except Exception as e :
@@ -153,6 +158,9 @@ def index():
         conn, cur = connect() 
         cur.execute("SELECT name, theclass, price, iid, quantity, sellingstatus from items")
         item_data = cur.fetchall()
+        cur.close()
+        conn.close()
+        gc.collect()
         return render_template('index.html', item_data=item_data)
 
             
@@ -173,6 +181,8 @@ def login():
             if data is None:
                 error = "Invalid email, try again."
                 gc.collect()
+                cur.close()
+                conn.close()
                 return render_template("login.html", error=error)
 
             if sha256_crypt.verify(request.form['password'], data[2]):
@@ -190,14 +200,21 @@ def login():
                 cur.execute(q,(data[0],))
                 if cur.fetchone() is not None:
                     session['character'] = 'buyer'
+                    cur.close()
+                    conn.close()
+                    gc.collect()
                     return redirect(url_for("index"))
                 else:
                     session['character'] = 'seller'
+                    cur.close()
+                    conn.close()
+                    gc.collect()
                     return redirect(url_for("mysell"))
 
             else:
                 error = "Invalid password, try again."
-
+        cur.close()
+        conn.close()
         gc.collect()
         return render_template("login.html", error=error)
 
@@ -237,6 +254,10 @@ def item(iid):
         cur.execute(q,(item_data[2],))
         seller_name = cur.fetchone()
 
+        q = "SELECT rating from sellers where uid = %s"
+        cur.execute(q,(item_data[2],))
+        seller_rating = cur.fetchone()
+
         q = "SELECT * FROM users u, buyers b WHERE u.uid = b.uid AND u.uid = %s"
         cur.execute(q,(session['uid'],))
         isbuyer = not (cur.fetchone() is None)
@@ -256,8 +277,12 @@ def item(iid):
         	print picture[0]
 
         #print comments[5][1]
+        cur.close()
+        conn.close()
+        gc.collect()
         return render_template('item.html', item_data=item_data, \
-            seller_name=seller_name, comments=comments, likeit = likeIt, isbuyer = isbuyer, pictures=pictures)
+            seller_name=seller_name, seller_rating = seller_rating, \
+            comments=comments, likeit = likeIt, isbuyer = isbuyer, pictures=pictures)
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
@@ -339,16 +364,49 @@ def buy_history():
     try:
         conn, cur = connect()
 
-        q = """SELECT i.iid, name, theclass, price, time FROM items AS i, transactions AS t
+        q = """SELECT i.iid, name, theclass, price, time, t.tid, t.rating, t.sellerid FROM items AS i, transactions AS t
                   WHERE t.buyerid = %s AND t.iid = i.iid
                   ORDER BY time DESC"""
         cur.execute(q,(session['uid'],))
         item_data = cur.fetchall()
-
         cur.close()
         conn.close()
         gc.collect()
         return render_template('buy_history.html', item_data = item_data)
+
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e) 
+
+@app.route('/add_rating/', methods = ["GET","POST"])
+def add_rating():
+    try:
+        conn, cur = connect()
+        rating = request.form['rating']
+        print 'rating=', rating
+        tid = request.form['tid']
+        print 'tid =',tid
+        seller_id = request.form['seller_id']
+        print 'seller_id',seller_id
+        q = "UPDATE transactions SET rating = %s WHERE tid = %s"
+        cur.execute(q,(rating, tid))
+
+        q = "SELECT rating FROM sellers WHERE uid = %s"
+        cur.execute(q, (seller_id,))
+        seller_rating = cur.fetchone()[0]
+
+        q = "SELECT avg(rating) FROM transactions WHERE sellerid = %s AND rating is not null"
+        cur.execute(q, (seller_id,))
+        avg_rating = int(cur.fetchone()[0])
+        print 'avg_rating',avg_rating
+        if seller_rating != avg_rating:
+            q = "UPDATE sellers SET rating = %s WHERE uid = %s"
+            cur.execute(q, (avg_rating, seller_id))
+                
+        conn.commit()
+        cur.close()
+        conn.close()
+        gc.collect()
+        return redirect('/buy_history/')
 
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
@@ -360,7 +418,7 @@ def sell_history():
     try:
         conn, cur = connect()
 
-        q = """SELECT i.iid, i.name, i.theclass, i.price, t.time, u.name  
+        q = """SELECT i.iid, i.name, i.theclass, i.price, t.time, u.name, t.rating  
                 FROM users AS u, items AS i, transactions AS t
                 WHERE t.sellerid = %s AND t.iid = i.iid AND u.uid = t.buyerid
                 ORDER BY t.time DESC"""
@@ -468,20 +526,42 @@ def add_likelist():
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
+@app.route('/delete_likelist/', methods = ["GET","POST"])
+def delete_likelist():
+    try:
+        conn, cur = connect()
+        if request.method == "POST":
+            iid = request.form['item_id']
+            q = "DELETE FROM likelist WHERE uid = %s AND iid = %s"
+            cur.execute(q,(session['uid'], iid))
+            conn.commit()
+            cur.close()
+            conn.close()
+            gc.collect()
+            location = '/buyers_likelist/'
+            return redirect(location)
+
+    except Exception as e:
+        return 'THIS IS EN EXCEPTION: ' + str(e) 
+
 @app.route('/buyers_likelist/', methods = ["GET","POST"])
 def buyers_likelist():
     try:
         conn, cur = connect()
-        q = """SELECT name, theclass, price, iid, quantity 
+        q = """SELECT name, theclass, price, iid, quantity, sellingstatus
                 FROM items WHERE iid IN (
                     SELECT iid FROM likelist WHERE uid = %s
                     )"""
         cur.execute(q, (session['uid'],))
         item_data = cur.fetchall()
+        cur.close()
+        conn.close()
+        gc.collect()
         return render_template('buyers_likelist.html', item_data=item_data)
 
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
+
 
 
 @app.route('/sell/')
@@ -514,6 +594,9 @@ def mysell():
                 ORDER BY sellingstatus DESC, cancelstatus ASC"""
         cur.execute(q,(session['uid'],))
         selling_items = cur.fetchall()
+        cur.close()
+        conn.close()
+        gc.collect()
         return render_template('mysell.html', selling_items=selling_items)
 
     except Exception as e:
@@ -525,10 +608,40 @@ def mysell():
 def userfile():
     try:
         conn, cur = connect()        
-        q = "SELECT * FROM users WHERE uid = %s"
-        cur.execute(q,(session['uid'],))
-        user_data = cur.fetchone()
-
+        #q = "SELECT * FROM users WHERE uid = %s"
+        if session['character'] == 'buyer':
+            q = "SELECT level FROM buyers WHERE uid = %s"
+            cur.execute(q, (session['uid'],))
+            buyer_level = cur.fetchone()[0]
+            print buyer_level
+            q = "SELECT sum(totalprice) FROM transactions WHERE buyerid = %s"
+            cur.execute(q, (session['uid'],))
+            total_spent = cur.fetchone()[0]
+            print total_spent
+            if buyer_level != 1 + int(total_spent/100):
+                buyer_level = 1 + int(total_spent/100)
+                q = "UPDATE buyers SET level = %s WHERE uid = %s"
+                cur.execute(q, (buyer_level, session['uid']))
+                conn.commit()
+            q = "SELECT * FROM users u, buyers b WHERE u.uid = b.uid AND u.uid = %s"
+            cur.execute(q,(session['uid'],))
+            user_data = cur.fetchone()
+        elif session['character'] == 'seller': 
+            q = "SELECT rating FROM sellers WHERE uid = %s"
+            cur.execute(q, (session['uid'],))
+            seller_rating = cur.fetchone()[0]
+            print 'seller_rating',seller_rating
+            q = "SELECT avg(rating) FROM transactions WHERE sellerid = %s AND rating is not null"
+            cur.execute(q, (session['uid'],))
+            avg_rating = cur.fetchone()[0]
+            print 'avg_rating',avg_rating
+            if seller_rating != avg_rating:
+                q = "UPDATE sellers SET rating = %s WHERE uid = %s"
+                cur.execute(q, (avg_rating, session['uid']))
+                conn.commit()
+            q = "SELECT * FROM users u, sellers s WHERE u.uid = s.uid AND u.uid = %s"
+            cur.execute(q,(session['uid'],))
+            user_data = cur.fetchone()
         q = "SELECT * FROM creditcards WHERE uid = %s"
         cur.execute(q,(session['uid'],))
         card_data = cur.fetchall()
@@ -557,6 +670,9 @@ def add_phone():
             location = '/userfile/'
             return redirect(location)
         else: # method = "GET"
+            cur.close()
+            conn.close()
+            gc.collect()
             return render_template('add_phone.html')
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e)    
@@ -581,6 +697,9 @@ def add_card():
             location = '/userfile/'
             return redirect(location)
         else: # method = "GET"
+            cur.close()
+            conn.close()
+            gc.collect()
             return render_template('add_card.html')
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e)    
@@ -627,8 +746,14 @@ def upload_picture():
             	print image_number, picture_name
                 conn.commit()
                	file.save(os.path.join(app.config['UPLOAD_FOLDER'],picture_name))
+                cur.close()
+                conn.close()
+                gc.collect()
                	return redirect(url_for('item', iid = item_id))
        	#return redirect(url_for('homepage'))
+        cur.close()
+        conn.close()
+        gc.collect()
         return redirect(url_for('item', iid = item_id))
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
@@ -648,6 +773,9 @@ def delete_picture():
             q = "DELETE FROM pictures_belongs WHERE iid = %s AND imagenumber = %s"
             cur.execute(q,(item_id, image_number))
             conn.commit()
+            cur.close()
+            conn.close()
+            gc.collect()
             return redirect(url_for('item', iid = item_id))
 
     except Exception as e:

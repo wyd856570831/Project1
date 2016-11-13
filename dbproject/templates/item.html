@@ -4,7 +4,7 @@
 <!-- item_data: iid, name, sellerid, class, description, price, quantity, 7 sellingstatus, cancelstatus -->
 <!-- isbuyer : boolean-->
 <!-- pictures: filename, imagenumber -->
-
+<!-- seller_rating -->
 
 {% block body %}
     <h3> Item Information </h3>
@@ -14,6 +14,11 @@
     	<input type = 'hidden' name = 'receiver_id' value = {{item_data[2]}} />
     	<input type='submit'  value='Send a message' />
 	</form> 
+    </h4>
+    <h4> {% if seller_rating[0] %}
+            seller rating: 
+            <input id="input-2" name="rating" class="rating rating-loading" data-size = "xs" value = {{seller_rating[0]}}  data-readonly = ”true“ data-show-clear = "false" data-show-caption = "false"/> 
+        {% endif %}
     </h4>
 	<h4>class: {{item_data[3]}}</h4>
 	<h4>price: ${{item_data[5]}}</h4>

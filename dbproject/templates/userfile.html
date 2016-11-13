@@ -3,12 +3,19 @@
 
 <!-- Prepared to Display: name, email, phone, credit card -->
 
-<!-- user_data: uid, name, password, email, phone -->
+<!-- user_data:  uid | name | password  | email |   phone | uid | level  -->
 <!-- card_data: uid, cardnumber, ownername -->
 
 {% block body %}
 <h2> Profile </h2>
-<h4> Name: {{user_data[1]}} </h4> 
+<h4> Name: {{user_data[1]}} </h4>
+<h4> {% if session['character'] == 'buyer' and user_data[6] %}
+		Level: {{user_data[6]}} 
+	{% elif session['character'] == 'seller' and user_data[6] %}
+		Rating: 
+		<input id="input-2" name="rating" class="rating rating-loading" data-size = "xs" value = {{user_data[6]}}  data-readonly = ”true“ data-show-clear = "false" data-show-caption = "false"/> 
+	{% endif %}
+</h4>
 <h4> Email: {{user_data[3]}} </h4> 
 <h4> Phone: {% if user_data[4] %}  {{user_data[4]}} <a href="/add_phone/"><button>Change Number</button></a>
 <!-- <form method='GET' action="/add_phone/">
