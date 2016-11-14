@@ -110,12 +110,10 @@ def register():
                 conn.commit()
                 flash('Thanks for registering')
 
-                #cur.close()
-                #conn.close()
-                #gc.collect()
+                
                 return redirect(url_for('homepage'))    
-        cur.close()
-        conn.close()
+            cur.close()
+            conn.close()
         gc.collect()
         return render_template('register.html', form=form)
 
@@ -451,7 +449,9 @@ def new_message():
             gc.collect()
             return render_template('compose_message.html', sender_name = sender_name, \
                 receiver_name = receiver_name, receiver_id = receiver_id)
-
+        cur.close()
+        conn.close()
+        gc.collect()
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
@@ -474,7 +474,9 @@ def compose_message():
             conn.close()
             gc.collect()
             return  redirect('/my_messages/')  #render_template('my_messages.html')
-
+        cur.close()
+        conn.close()
+        gc.collect()
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
@@ -522,7 +524,9 @@ def add_likelist():
             gc.collect()
             location = '/item/' + iid
             return redirect(location)
-
+        cur.close()
+        conn.close()
+        gc.collect()
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
@@ -540,7 +544,9 @@ def delete_likelist():
             gc.collect()
             location = '/buyers_likelist/'
             return redirect(location)
-
+        cur.close()
+        conn.close()
+        gc.collect()
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e) 
 
@@ -718,7 +724,9 @@ def delete_card():
             gc.collect()
             location = '/userfile/'
             return redirect(location)
-
+        cur.close()
+        conn.close()
+        gc.collect()
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e)    
 
@@ -777,7 +785,9 @@ def delete_picture():
             conn.close()
             gc.collect()
             return redirect(url_for('item', iid = item_id))
-
+        cur.close()
+        conn.close()
+        gc.collect()
     except Exception as e:
         return 'THIS IS EN EXCEPTION: ' + str(e)  
     
