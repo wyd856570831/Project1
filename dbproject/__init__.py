@@ -56,7 +56,7 @@ def homepage():
 class RegistrationForm(Form):
     #email = TextField('Email Address', [validators.Length(max=50)])
     email = EmailField('Email address', [validators.DataRequired(), validators.Email()])
-    name = TextField('name', [validators.Length(max=20)])
+    name = TextField('name', [validators.Length(max=20),validators.Length(min=1)])
     password = PasswordField('New Password', [
         validators.Required(),
         validators.EqualTo('confirm', message='Passwords must match')
@@ -589,6 +589,26 @@ def mysell():
             name = request.form["name"]
             price = request.form["price"]
             quantity = request.form["quantity"]
+            try:
+                theclass = request.form["type"]
+            except Exception as e:
+                flash("Please choose the type for the item")
+                return redirect('/sell/')
+            if not quantity.isdigit():
+                flash("invalid quantity")
+                return redirect('/sell/')
+            if not price.isdigit():
+                flash("price should be positive integer")
+                return redirect('/sell/')
+            if name == '':
+                flash("Please input the name")
+                return redirect('/sell/')
+          #   if not quantity.isdigit():
+          #       flash("invalid quantity")
+        		# return redirect('/sell/')
+          #   if not price.isdigit():
+          #   	flash("price should be positive integer")
+          #   	return redirect('/sell/')
             #cur.execute("INSERT into items (name, sellerid, theclass, description, price, sellingstatus, cancelstatus) values ('{}', {}, '{}', '{}', {}, True, False)".format(name,sellerid, request.form["type"], description, price))
             q = "INSERT into items (name, sellerid, theclass, description, price, quantity, sellingstatus, cancelstatus) values (%s,%s,%s,%s,%s,%s,%s,%s)"
             cur.execute(q,(name,sellerid, request.form["type"], description, price, quantity, True, False))
@@ -667,6 +687,12 @@ def add_phone():
         conn, cur = connect()
         if request.method == "POST":
             phone_number = request.form['phone']
+            if not phone_number.isdigit() or len(phone_number) != 10:
+            	flash("phone number should be 10 digit numbers")
+                return redirect('/userfile/')
+          #   	cur.close()
+        		# conn.close()
+       			# gc.collect()
             q = "UPDATE users SET phone = %s WHERE uid = %s"
             cur.execute(q,(phone_number, session['uid']))
             conn.commit()
@@ -694,6 +720,9 @@ def add_card():
         if request.method == "POST":
             card_number = request.form['card']
             card_holder = request.form['holder']
+            if not card_number.isdigit() or len(card_number) != 16:
+                flash("card number should be 16 digit numbers")
+                return redirect('/userfile/')
             q = "INSERT INTO creditcards (uid, cardnumber, ownername) VALUES (%s, %s, %s)"
             cur.execute(q,(session['uid'], card_number, card_holder))
             conn.commit()
